@@ -11,7 +11,7 @@
     <body>
         <div class="form" id="form">
         <h2 style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">Autentificazione a due Fattori</br>
-        Inserisci il token che ti è arrivato per email :</h2>
+        Inserisci i token che ti sono stati inviati:</h2>
         <input type="text" id="codice" placeholder="Inserisci il tuo Token" name="codice" required>   
         <button class="button-blu" type="submit" id="verifica">Verifica</button>
         </div>
