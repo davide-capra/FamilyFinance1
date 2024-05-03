@@ -155,7 +155,7 @@ case 'POST':
                 $username = $utente['nome'];
                 $cognome = $utente['cognome'];
                 echo "Login effettuato con successo";
-                $token=generateToken(6);
+                /*$token=generateToken(6);
                 $expiry = 20*60; // 20 minuti di scadenza
                 $expiryTimestamp = time() + $expiry; // Calcola il timestamp di scadenza
                 $tokenWithExpiry = $token . '_' . $expiryTimestamp;
@@ -168,7 +168,7 @@ case 'POST':
                 $subject = "Codice di autentificazione";
                 $txt = "Ciao $username $cognome, ecco qui il tuo codice per autentificazione a 2 fattori: $token";
                 $headers = "From: gamesslayers87@gmail.com" . "\r\n" ."CC:";
-                mail($to,$subject,$txt,$headers);
+                mail($to,$subject,$txt,$headers);*/
 
             }else{
                 echo "Errore durante il login";

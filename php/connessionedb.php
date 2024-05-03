@@ -6,7 +6,7 @@ $config = [
 
 'db_host' => '127.0.0.1',
 
-'db_name' => 'familyfinance2',
+'db_name' => 'Tesi',
 
 'db_user' => 'root',
 

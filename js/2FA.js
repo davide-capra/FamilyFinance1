@@ -1,6 +1,7 @@
 function invio(){
     var data = {};
     data.codice = document.getElementById("codice").value;
+    data.codice = data.codice.trim();
     if (data.codice == "") {
         alert("Inserisci il codice");
         return;
