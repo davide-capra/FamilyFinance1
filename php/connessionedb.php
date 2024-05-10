@@ -6,7 +6,7 @@ $config = [
 
 'db_host' => '127.0.0.1',
 
-'db_name' => 'Tesi',
+'db_name' => 'tesi',
 
 'db_user' => 'root',
 
@@ -32,7 +32,7 @@ $pdo = new PDO($db_config, $config['db_user'], $config['db_password'], [
 // Impostiamo il modo di gestione degli errori
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-$pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+$pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, true); // Impostiamo la modalità di emulazione delle query preparate
 
 } catch (PDOException $e) {
 

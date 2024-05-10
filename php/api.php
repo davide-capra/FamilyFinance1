@@ -1,19 +1,19 @@
 <?php
 require_once('connessionedb.php');
-$request = explode('/', trim($_SERVER['PATH_INFO'],'/'));    //array contenente i dati passati nell'url
+$request = explode('/', trim($_SERVER['PATH_INFO'], '/'));    //array contenente i dati passati nell'url
 $method = $_SERVER['REQUEST_METHOD'];                       //metodo di richiesta
-parse_str(file_get_contents('php://input'),$_PUT);        //$_PUT contiene i dati passati con il metodo PUT
-parse_str(file_get_contents('php://input'),$_DELETE);     //$_DELETE contiene i dati passati con il metodo DELETE
+parse_str(file_get_contents('php://input'), $_PUT);        //$_PUT contiene i dati passati con il metodo PUT
+parse_str(file_get_contents('php://input'), $_DELETE);     //$_DELETE contiene i dati passati con il metodo DELETE
 
 
-switch($method){ //switch per il metodo di richiesta
-    case 'GET': 
-        if($request[0]=="ListaMembri"){ // GET per la lista dei membri della famiglia
+switch ($method) { //switch per il metodo di richiesta
+    case 'GET':
+        if ($request[0] == "ListaMembri") { // GET per la lista dei membri della famiglia
             session_start();
             $email = $_SESSION['email']; //email dell'utente loggato
             $q = $pdo->prepare("SELECT * FROM utenti WHERE email = :email"); //query per prendere l'id della famiglia dell'utente loggato
             $q->bindParam(':email', $_SESSION['email'], PDO::PARAM_STR); // La funzione bindParam() viene utilizzata per associare un parametro a una dichiarazione preparata (prepared statement) in PDO (PHP Data Objects).
-            $q->execute();//esecuzione della query
+            $q->execute(); //esecuzione della query
             $utente = $q->fetch(PDO::FETCH_ASSOC);
             $id_famiglia = $utente['id_famiglia']; //id della famiglia dell'utente loggato
             $sql = "SELECT membri_famiglia.nome, membri_famiglia.cognome, membri_famiglia.id_membri_famiglia 
@@ -23,7 +23,7 @@ switch($method){ //switch per il metodo di richiesta
             $q = $pdo->prepare($sql);
             $q->bindParam(':id_famiglia', $id_famiglia, PDO::PARAM_INT);
             $q->execute();
-            $membri = $q->fetchAll(PDO::FETCH_ASSOC);
+            $membri = $q->fetchAll(PDO::FETCH_ASSOC);//restituisce un array contenente tutte le righe del set di risultati
             echo json_encode($membri);
         } 
         if($request[0]=="Statistiche"){ // GET per le statistiche
@@ -154,21 +154,59 @@ case 'POST':
                 $utente = $q->fetch(PDO::FETCH_ASSOC);
                 $username = $utente['nome'];
                 $cognome = $utente['cognome'];
-                echo "Login effettuato con successo";
-                /*$token=generateToken(6);
-                $expiry = 20*60; // 20 minuti di scadenza
-                $expiryTimestamp = time() + $expiry; // Calcola il timestamp di scadenza
-                $tokenWithExpiry = $token . '_' . $expiryTimestamp;
-                $sql="UPDATE utenti SET 2FA = :tokenWithExpiry WHERE email = :email";
+                $sql="SELECT id_rrns FROM utenti WHERE email = :email";
                 $q = $pdo->prepare($sql);
-                $q->bindParam(':tokenWithExpiry', $tokenWithExpiry, PDO::PARAM_STR);
                 $q->bindParam(':email', $email, PDO::PARAM_STR);
                 $q->execute();
-                $to = $email;
-                $subject = "Codice di autentificazione";
-                $txt = "Ciao $username $cognome, ecco qui il tuo codice per autentificazione a 2 fattori: $token";
-                $headers = "From: gamesslayers87@gmail.com" . "\r\n" ."CC:";
-                mail($to,$subject,$txt,$headers);*/
+                $id_rrns = $q->fetch(PDO::FETCH_ASSOC)['id_rrns'];
+                if($id_rrns != NULL){
+                    $sql="UPDATE utenti SET id_rrns = NULL WHERE email = :email;
+                    DELETE FROM rrns_secret WHERE id_rrns = :id_rrns";
+                    $q = $pdo->prepare($sql);
+                    $q->bindParam(':email', $email, PDO::PARAM_STR);
+                    $q->bindParam(':id_rrns', $id_rrns, PDO::PARAM_STR);
+                    $q->execute();
+                }
+                
+                echo "Login effettuato con successo";
+                // Percorso del file CSV
+                $file_csv = 'dati_utenti.csv';
+
+                // Apri il file CSV in modalità append
+                $csv_file = fopen($file_csv, 'a');
+
+                // Verifica se il file CSV è stato aperto correttamente
+                if ($csv_file !== FALSE) {
+                // Scrivi i dati nel file CSV
+                fputcsv($csv_file, array($username, $cognome, $email));
+
+                // Chiudi il file CSV
+                fclose($csv_file);
+                }
+
+                // Comando per eseguire il file Python
+                $command= shell_exec('python C:\xampp\htdocs\ProgTesi\python\rrns.py');
+                if($id_rrns != NULL){
+                    $sql="SELECT id_rrns FROM utenti WHERE email = :email";
+                    $q = $pdo->prepare($sql);
+                    $q->bindParam(':email', $email, PDO::PARAM_STR);
+                    $q->execute();
+                    $id_rrns = $q->fetch(PDO::FETCH_ASSOC)['id_rrns'];
+                    $sql="SELECT rrns_token2,rrns_token3,rrns_token4 FROM rrns_secret WHERE id_rrns = :id_rrns";
+                    $q = $pdo->prepare($sql);
+                    $q->bindParam(':id_rrns', $id_rrns, PDO::PARAM_INT);
+                    $q->execute();
+                    $result = $q->fetch(PDO::FETCH_ASSOC);
+                    if ($result) {
+                        $token2= $result['rrns_token2'];
+                        $token3= $result['rrns_token3'];
+                        $token4= $result['rrns_token4'];
+                        $output = shell_exec('python C:\\xampp\\htdocs\\ProgTesi\\python\\invioemail.py '.$email.' '.$token2.' '.$token3.' '.$token4);
+                    }
+                
+                } else {
+                    #echo "Nessun risultato trovato";
+                }
 
             }else{
                 echo "Errore durante il login";
@@ -179,7 +217,31 @@ case 'POST':
 }
     if($request[0]=="2FA"){
         session_start();
-        $token=$_POST['codice'];
+        $email = $_SESSION['email'];
+        $token1= $_POST['codice1'];
+        $token2= $_POST['codice2'];
+        $token3= $_POST['codice3'];
+        $token4= $_POST['codice4'];
+        $sql="SELECT id_rrns FROM utenti WHERE email = :email";
+        $q = $pdo->prepare($sql);
+        $q->bindParam(':email', $email, PDO::PARAM_STR);
+        $q->execute();
+        $id_rrns = $q->fetch(PDO::FETCH_ASSOC)['id_rrns'];
+        $output = shell_exec('python C:\\xampp\\htdocs\\ProgTesi\\python\\merge.py '.$id_rrns.' '.$token1.' '.$token2.' '.$token3.' '.$token4.' 2>&1');
+        $sql="SELECT rrns_secret FROM rrns_secret WHERE id_rrns = :id_rrns";
+        $q = $pdo->prepare($sql);
+        $q->bindParam(':id_rrns', $id_rrns, PDO::PARAM_INT);
+        $q->execute();
+        $result = $q->fetch(PDO::FETCH_ASSOC);
+        $rrns_secret = $result['rrns_secret'];
+        if($output == $rrns_secret ){
+            echo "Autenticazione a 2 fattori effettuata con successo";
+        }else{
+            echo "Codice errato";
+        }
+
+        
+        /*$token=$_POST['codice'];
         $sql="SELECT 2FA FROM utenti WHERE email = :email";
         $q = $pdo->prepare($sql);
         $q->bindParam(':email', $_SESSION['email'], PDO::PARAM_STR);
@@ -199,7 +261,7 @@ case 'POST':
                     }else{
                         echo "Codice errato";
                     }
-            // Resto del codice
+            // Resto del codice*/
     }
     if($request[0]=="CreazioneFamiglia"){
         session_start();
@@ -373,21 +435,31 @@ case 'POST':
         else if ($request[0] == "2FAELIMINAZIONE") {
             session_start();
             $email = $_SESSION['email'];
-            $sql = "SELECT 2FA FROM utenti WHERE email = :email";
+            $sql = "SELECT id_rrns FROM utenti WHERE email = :email";
             $q = $pdo->prepare($sql);
             $q->bindParam(':email', $email, PDO::PARAM_STR);
             $q->execute();
             $risultato = $q->fetch(PDO::FETCH_ASSOC);
+            $sql = "DELETE FROM rrns_secret WHERE id_rrns = :id_rrns;
+                    UPDATE utenti SET id_rrns = NULL WHERE email = :email";
+            $q = $pdo->prepare($sql);
+            $q->bindParam(':id_rrns', $risultato['id_rrns'], PDO::PARAM_INT);
+            $q->bindParam(':email', $email, PDO::PARAM_STR);
+            if ($q->execute()) {
+                echo "Eliminazione 2FA effettuata con successo";
+            } else {
+                echo "Errore durante l'eliminazione del 2FA";
+            }
             
-            if ($risultato['2FA'] != NULL) {
-                $sql = "UPDATE utenti SET 2FA = NULL WHERE email= :email";
+            /*if ($risultato['2FA'] != NULL) {
+                $sql = "UPDATE utenti SET id_rrns = NULL WHERE email= :email";
                 $q = $pdo->prepare($sql);
                 $q->bindParam(':email', $email, PDO::PARAM_STR);
                 $q->execute();
                 echo "Eliminazione 2FA effettuata con successo";
         } else {
             echo "Errore durante l'eliminazione del 2FA";
-        }
+        }*/
     }
         break;
     default:
@@ -417,4 +489,26 @@ function generateToken($length = 6) {
             return false;
         }
     }
-?>
+
+/*$file = fopen('C:\xampp\htdocs\ProgTesi\token_data.csv', 'r');
+                $data = fgetcsv($file); // Leggi la prima riga del file CSV
+                $secret = $data[0];
+                $remainder_1 = $data[1];
+                $remainder_2 = $data[2];
+                $remainder_3 = $data[3];
+                $remainder_4 = $data[4];
+                fclose($file);*/
+                /*$token=generateToken(6);
+                $expiry = 20*60; // 20 minuti di scadenza
+                $expiryTimestamp = time() + $expiry; // Calcola il timestamp di scadenza
+                $tokenWithExpiry = $token . '_' . $expiryTimestamp;
+                $sql="UPDATE utenti SET 2FA = :tokenWithExpiry WHERE email = :email";
+                $q = $pdo->prepare($sql);
+                $q->bindParam(':tokenWithExpiry', $tokenWithExpiry, PDO::PARAM_STR);
+                $q->bindParam(':email', $email, PDO::PARAM_STR);
+                $q->execute();
+                $to = $email;
+                $subject = "Codice di autentificazione";
+                $txt = "Ciao $username $cognome, ecco qui il tuo codice per autentificazione a 2 fattori: $token";
+                $headers = "From: gamesslayers87@gmail.com" . "\r\n" ."CC:";
+                mail($to,$subject,$txt,$headers);*/
