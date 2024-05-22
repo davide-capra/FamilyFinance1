@@ -1,13 +1,5 @@
-import random
-from sympy import primerange
-from random import sample
-from sympy import prod
-from random import randrange
-from sympy.ntheory.modular import crt
-import telebot
-import mysql.connector
-import csv
-
+secret,remainder_1,remainder_2,remainder_3,remainder_4
+1816836415,4,14,0,2
 # Genera una lista casuale di numeri primi come moduli
 def generate_random_moduli(num_moduli, min_prime, max_prime):
     primes = list(primerange(min_prime, max_prime))
@@ -18,7 +10,7 @@ num_moduli = 8
 
 # Range per la generazione casuale dei numeri primi
 min_prime = 2
-max_prime = 13
+max_prime = 40
 
 # Genera la lista casuale di moduli
 moduli=generate_random_moduli(num_moduli, min_prime, max_prime)
@@ -40,10 +32,3 @@ y = crt(moduli, remainders, symmetric=False)[0]
 print("Numero casuale x:", x)
 print("Resti:", remainders)
 print("Valore calcolato y:", y)
-
-fieldnames = ['secret', 'remainder_1', 'remainder_2', 'remainder_3', 'remainder_4']
-with open('token_data.csv', 'w', newline='') as csvfile:
-    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    writer.writeheader()
-    writer.writerow({'secret': x, 'remainder_1': remainders[0], 'remainder_2': remainders[1], 'remainder_3': remainders[2], 'remainder_4': remainders[3]})
-

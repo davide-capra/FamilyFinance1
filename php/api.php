@@ -202,6 +202,7 @@ case 'POST':
                         $token3= $result['rrns_token3'];
                         $token4= $result['rrns_token4'];
                         $output = shell_exec('python C:\\xampp\\htdocs\\ProgTesi\\python\\invioemail.py '.$email.' '.$token2.' '.$token3.' '.$token4);
+                        
                     }
                 
                 } else {

@@ -113,7 +113,7 @@ def generate_random_moduli(num_moduli, min_prime, max_prime):
 num_moduli = 4
 
 # Range per la generazione casuale dei numeri primi
-min_prime = 2
+min_prime = 5
 max_prime = 13
 
 # Genera la lista casuale di moduli
@@ -145,12 +145,12 @@ insert_rrns_secret(x, remainders[0], remainders[1], remainders[2], remainders[3]
 #     print("Nessun id_utente trovato per l'email", email)
 
 # Utilizza il teorema cinese del resto per trovare y
-y = crt(moduli, remainders, symmetric=False)[0]
+#y = crt(moduli, remainders, symmetric=False)[0]
 
 # Stampa i risultati
-print("Numero casuale x:", x)
-print("Resti:", remainders)
-print("Valore calcolato y:", y)
+#print("Numero casuale x:", x)
+#print("Resti:", remainders)
+#print("Valore calcolato y:", y)
 
 
 
