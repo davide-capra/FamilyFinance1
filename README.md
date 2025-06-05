@@ -44,16 +44,3 @@ Schema di autenticazione utente collegato al sistema RRNS, con tabelle principal
 - **RRNS_Secret**: id_rrns, segreto hashato, token_telegram
 
 ---
-
-## Come avviare il progetto
-
-1. Configurare il database MySQL con le tabelle `Utente` e `RRNS_Secret`.
-2. Impostare le credenziali per SMTP e bot Telegram nei file di configurazione.
-3. Avviare il server Python che gestisce l’algoritmo RRNS e il modulo di autenticazione.
-4. Eseguire il sito web per l’interfaccia utente.
-
----
-
-## Contatti
-
-Per domande o supporto: [tuo indirizzo email]
